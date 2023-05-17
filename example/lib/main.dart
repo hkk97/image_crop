@@ -24,16 +24,16 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final cropKey = GlobalKey<CropState>();
-  File _file;
-  File _sample;
-  File _lastCropped;
+  late File _file;
+  late File _sample;
+  late File _lastCropped;
 
   @override
   void dispose() {
     super.dispose();
-    _file?.delete();
-    _sample?.delete();
-    _lastCropped?.delete();
+    _file.delete();
+    _sample.delete();
+    _lastCropped.delete();
   }
 
   @override
@@ -44,6 +44,7 @@ class _MyAppState extends State<MyApp> {
         child: Container(
           color: Colors.black,
           padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
+          // ignore: unnecessary_null_comparison
           child: _sample == null ? _buildOpeningImage() : _buildCroppingImage(),
         ),
       ),
@@ -71,8 +72,8 @@ class _MyAppState extends State<MyApp> {
                   'Crop Image',
                   style: Theme.of(context)
                       .textTheme
-                      .button
-                      .copyWith(color: Colors.white),
+                      .labelLarge
+                      ?.copyWith(color: Colors.white),
                 ),
                 onPressed: () => _cropImage(),
               ),
@@ -88,22 +89,26 @@ class _MyAppState extends State<MyApp> {
     return TextButton(
       child: Text(
         'Open Image',
-        style: Theme.of(context).textTheme.button.copyWith(color: Colors.white),
+        style: Theme.of(context)
+            .textTheme
+            .labelLarge
+            ?.copyWith(color: Colors.white),
       ),
       onPressed: () => _openImage(),
     );
   }
 
   Future<void> _openImage() async {
-    final pickedFile = await ImagePicker().getImage(source: ImageSource.gallery);
-    final file = File(pickedFile.path);
+    final ImagePicker picker = ImagePicker();
+    XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    final file = File(image!.path);
     final sample = await ImageCrop.sampleImage(
       file: file,
-      preferredSize: context.size.longestSide.ceil(),
+      preferredSize: context.size!.longestSide.ceil(),
     );
 
-    _sample?.delete();
-    _file?.delete();
+    _sample.delete();
+    _file.delete();
 
     setState(() {
       _sample = sample;
@@ -112,8 +117,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _cropImage() async {
-    final scale = cropKey.currentState.scale;
-    final area = cropKey.currentState.area;
+    final scale = cropKey.currentState!.scale;
+    final area = cropKey.currentState!.area;
     if (area == null) {
       // cannot crop, widget is not setup
       return;
@@ -133,7 +138,7 @@ class _MyAppState extends State<MyApp> {
 
     sample.delete();
 
-    _lastCropped?.delete();
+    _lastCropped.delete();
     _lastCropped = file;
 
     debugPrint('$file');
